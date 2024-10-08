@@ -240,24 +240,24 @@ let [, ...lightToTemperature] = input[5].split('\n');
 let [, ...temperatureToHumidity] = input[6].split('\n');
 let [, ...humidityToLocation] = input[7].split('\n');
 
-const part1 = () => {
-    const mapStartToEnd = (mapping, X) => {
-        let Y = -1; // assign a random value
+const mapStartToEnd = (mapping: string[], X: number) => {
+    let Y = -1; // assign a random value
 
-        for (const row of mapping) {
-            const [end, start, count] = row.split(' ').map(x => parseInt(x));
+    for (const row of mapping) {
+        const [end, start, count] = row.split(' ').map(x => parseInt(x));
 
-            // Check if the seed is within the range: start -> start + count. 
-            // If it is, calculate the mapped value
-            if (X >= start && X <= start + count) {
-                Y = end - start + X;
-                break;
-            }
+        // Check if the seed is within the range: start -> start + count. 
+        // If it is, calculate the mapped value
+        if (X >= start && X <= start + count) {
+            Y = end - start + X;
+            break;
         }
-        // If the value is not in the mapping, return the original because those are 1:1 anyway
-        return Y === -1 ? X : Y;
-    };
+    }
+    // If the value is not in the mapping, return the original because those are 1:1 anyway
+    return Y === -1 ? X : Y;
+};
 
+const part1 = (): number => {
     const result = inputSeeds
         .map(n => mapStartToEnd(seedToSoil, n))
         .map(n => mapStartToEnd(soilToFertilizer, n))
@@ -270,4 +270,38 @@ const part1 = () => {
     return Math.min(...result);
 };
 
-console.log(part1());
+// console.log(part1());
+
+// NOTE: This is the dumb version, which works with normal numbers, but the numbers in the input are too big for this to work
+// For learning, check out: https://www.youtube.com/watch?v=XKjXwItKsqs
+const part2 = (): number => {
+    // Get the seed number and range pairs from the inputSeeds array. The odd indexes are the seeds and the even indexes are the ranges
+    const seedRanges: Array<[number, number]> = inputSeeds.reduce((acc, curr, index, arr) => {
+        if (index % 2 === 0) {
+            // @ts-ignore
+            acc.push([curr, arr[index + 1]]);
+        }
+        return acc;
+    }, []);
+
+    const allSeeds: number[] = [];
+
+    seedRanges.forEach(([seed, range]) => {
+        for (let i = seed; i < seed + range; i++) {
+            allSeeds.push(i);
+        }
+    });
+
+    const result = allSeeds
+        .map(n => mapStartToEnd(seedToSoil, n))
+        .map(n => mapStartToEnd(soilToFertilizer, n))
+        .map(n => mapStartToEnd(fertilizerToWater, n))
+        .map(n => mapStartToEnd(waterToLight, n))
+        .map(n => mapStartToEnd(lightToTemperature, n))
+        .map(n => mapStartToEnd(temperatureToHumidity, n))
+        .map(n => mapStartToEnd(humidityToLocation, n));
+
+    return Math.min(...result);
+};
+
+console.log(part2());
